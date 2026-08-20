@@ -24,14 +24,11 @@ description: 根据最新行情为标普500、纳指100和黄金生成每日定�
 ## 可用脚本
 
 ```bash
-python C:/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py [amount] [--monthly 月度预算] [--record] [--reset] [--json] [--section5]
+python "$HOME/.claude/skills/investment-dca/scripts/dca_advisor.py" [amount] [--monthly 月度预算] [--record] [--reset] [--json] [--section5]
 ```
 
-等价 Git Bash 路径：
-
-```bash
-python /c/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py [amount] [--monthly 月度预算] [--record] [--reset] [--json] [--section5]
-```
+`$HOME` 在 Git Bash 与 PowerShell 下都可用；Windows cmd 下改写成 `%USERPROFILE%`。
+不要把家目录路径写成硬编码的绝对路径——换机器或改用户名就断。
 
 脚本功能：
 
@@ -52,9 +49,9 @@ python /c/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py [a
 示例：
 
 ```bash
-python C:/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py 1500 --monthly 30000
-python C:/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py 3000 --monthly 30000
-python C:/Users/xiezhibo/.claude/skills/investment-dca/scripts/dca_advisor.py 1500 --section5
+python "$HOME/.claude/skills/investment-dca/scripts/dca_advisor.py" 1500 --monthly 30000
+python "$HOME/.claude/skills/investment-dca/scripts/dca_advisor.py" 3000 --monthly 30000
+python "$HOME/.claude/skills/investment-dca/scripts/dca_advisor.py" 1500 --section5
 ```
 
 `--reset` 会删除本地记录；除非用户已明确输入 `--reset`，否则必须先提醒并确认。

@@ -425,7 +425,7 @@ if remaining_days <= 7 and available_pool > 0:
 **注释规则：**
 - 注释解释 WHY（为什么这么做），代码本身解释 WHAT（做了什么）
 - 公共函数/类必须有 docstring（参数、返回值、异常）
-- TODO 注释带作者和日期：`# TODO(xiezhibo 2026-08): 支持多币种`
+- TODO 注释带作者和日期：`# TODO(作者名 2026-08): 支持多币种`
 - 删除无用注释，不要留着"以后可能用到"
 
 ### 7.3 README 模板
