@@ -27,16 +27,16 @@ skill 原先散落在 `~/.claude/skills` 下（一度还把整个 Streamlit 项�
 | `branch-workflow` | SymbolicLink | `X:\coding\skills\common\branch-workflow` |
 | `coding-standards` | Junction | `X:\coding\skills\common\coding-standards` |
 | `self-check` | Junction | `X:\coding\skills\common\self-check` |
-| `investment-dca` | Junction | `X:\coding\skills\projects\investment-dca` |
 | `sp500-nasdaq100-gold-dca` | Junction | `X:\coding\skills\projects\sp500-nasdaq100-gold-dca` |
 | `kimi-webbridge` | Junction | `X:\coding\skills\tools\kimi-webbridge` |
 
 注意三点：
 
 1. **联接是平铺的**，分类目录（`common` / `projects` / `tools`）只存在于本仓，
-   Claude Code 那边看到的是 6 个同级技能。分类怎么调整都不影响加载。
+   Claude Code 那边看到的是 5 个同级技能。分类怎么调整都不影响加载。
 2. **`~/.claude/skills` 下任何真实目录都会被扫成一个技能。**
    备份副本别放那里——`xxx.old` 会变成一个重复技能项。
+   反过来说，**移除联接就是退役一个 skill**，本仓里的文件留着也不再被加载（见 `_archive/`）。
 3. **skill 在会话启动时加载，改完当前会话不生效。** 本仓建立当天实测：
    改写 `branch-workflow/SKILL.md` 后，同一会话的技能清单仍然是旧内容。
    验证改动必须开新会话或 `/clear`。
@@ -60,22 +60,25 @@ X:\coding\skills\
 │   ├── coding-standards\      SKILL.md
 │   └── self-check\            SKILL.md
 ├── projects\                  # 绑定具体项目的 skill
-│   ├── investment-dca\        SKILL.md + scripts\dca_advisor.py    ⚠️ 见第五节
 │   └── sp500-nasdaq100-gold-dca\  SKILL.md（脚本在项目仓里，不在这）
-└── tools\                     # 外部工具的操作说明
-    └── kimi-webbridge\        SKILL.md + references\operations.md   ⚠️ 第三方
+├── tools\                     # 外部工具的操作说明
+│   └── kimi-webbridge\        SKILL.md + references\operations.md   ⚠️ 第三方
+└── _archive\                  # 已退役，联接已移除，不再加载也不再更新
+    ├── README.md              # 每件为什么退役
+    └── investment-dca\        SKILL.md + scripts\dca_advisor.py
 ```
 
-## 四、六个 skill
+## 四、五个活跃 skill
 
 | skill | 分类 | 一句话 | 归属 |
 |---|---|---|---|
 | [coding-standards](common/coding-standards/SKILL.md) | 通用 | 研发规范总纲：目录结构、命名、Clean Code、SOLID、Git、Python、文档 | 自写 |
 | [branch-workflow](common/branch-workflow/SKILL.md) | 通用 | 分支管理可执行细则：六步命令、机密预检、`--ff-only` | 自写 |
 | [self-check](common/self-check/SKILL.md) | 通用 | 用户指出一个问题时，扫描并一并修正所有同类项 | 自写 |
-| [sp500-nasdaq100-gold-dca](projects/sp500-nasdaq100-gold-dca/SKILL.md) | 项目 | 三资产动态定投每日决策（**现行版**） | 自写 |
-| [investment-dca](projects/investment-dca/SKILL.md) | 项目 | 三资产定投建议（**旧版，与上一条冲突**） | 自写 |
+| [sp500-nasdaq100-gold-dca](projects/sp500-nasdaq100-gold-dca/SKILL.md) | 项目 | 三资产动态定投每日决策 | 自写 |
 | [kimi-webbridge](tools/kimi-webbridge/SKILL.md) | 工具 | 通过本地守护进程操控用户真实浏览器 | 第三方（Kimi） |
+
+已退役的见 [`_archive/README.md`](_archive/README.md)（目前一件：`investment-dca`）。
 
 ---
 
@@ -122,7 +125,7 @@ Python 工具链与错误处理、文档规范、项目启动清单。
 
 ---
 
-### sp500-nasdaq100-gold-dca — 三资产动态定投（现行版）
+### sp500-nasdaq100-gold-dca — 三资产动态定投
 
 **何时用**：每日定投决策、记账、查预算进度。
 
@@ -143,24 +146,10 @@ Python 工具链与错误处理、文档规范、项目启动清单。
 
 ---
 
-### investment-dca — 三资产定投建议（旧版，⚠️ 与现行版冲突）
+### investment-dca — 已于 2026-08-20 退役
 
-**状态**：被 `sp500-nasdaq100-gold-dca` 取代，但仍是活跃 skill，仍可能被触发。**详见第五节第 1 条。**
-
-**它是什么**：完全自包含的早期版本——`scripts/dca_advisor.py`（754 行）自己抓 Yahoo、
-自己算指标、自己记账到 `~/.claude/investment-dca/portfolio.json` 与 `daily_records.csv`，
-不依赖任何项目仓。
-
-**与现行版的实质差异**：
-
-| | investment-dca（旧） | sp500-nasdaq100-gold-dca（现行） |
-|---|---|---|
-| 中性权重 | 标普500 **45%** / 纳指100 **35%** / 黄金 20% | 标普500 **35%** / 纳指100 **45%** / 黄金 20% |
-| 金额决定 | 四档离散（强烈建议／建议／试探／不买）乘用户输入金额 | 连续评分模型 → 部署系数 × 每日基准 |
-| 预算模型 | 剩余预算 ÷ 自然月剩余天数 | 可用池 ÷ 剩余**交易日**，跳过份额再平均，月末释放 |
-| 计价 | 人民币，指数 proxy | USDT 本位（SPY/QQQ/XAUT），双汇率折算 |
-| 数据落点 | `~/.claude/investment-dca/` | 项目仓 `data/`，云端 Google Sheets 或本地 CSV |
-| 收益口径 | 收益率 + 年化 + XIRR | 同上，另有持有期不足 30 天不年化的保护 |
+三资产定投的早期自包含版本，因中性权重与现行版**主仓对调**、而两者 `description` 又高度相似，
+并存会静默给出错误分配，故退役。完整对照表与退役过程见 [`_archive/README.md`](_archive/README.md)。
 
 ---
 
@@ -184,23 +173,16 @@ Python 工具链与错误处理、文档规范、项目启动清单。
 
 ## 五、已知问题
 
-1. **两个 DCA skill 的中性权重相反，且都是活跃 skill。**
-   `investment-dca` 是 45/35/20，`sp500-nasdaq100-gold-dca` 是 35/45/20——标普和纳指对调。
-   两者的 `description` 都写着"为标普500、纳指100和黄金生成每日定投建议"，
-   一句"看看今天定投"完全可能匹配到旧的那个，给出与现行策略不同的分配。
-   **暂行办法：涉及定投一律显式指名 `sp500-nasdaq100-gold-dca`。**
-   根治要么删除／归档 `investment-dca`，要么改写它的 `description` 使其不再匹配日常定投请求——
-   两者都是行为变更，需用户拍板后再动。
-
-2. **`dca_advisor.py` 754 行，违反 `coding-standards` 自己的"单文件不超过 300 行"。**
-   属旧版遗留，不打算重构（见第 1 条，倾向于归档而非改进）。
-
-3. **`investment-dca/SKILL.md` 的 frontmatter 只有 `description`，没有 `name`。**
-   靠目录名推导，能正常加载，但与其余 5 个不一致。
-
-4. **本仓没有测试也没有 CI。** skill 是自然语言指令，正确性只能靠实际会话验证，
+1. **本仓没有测试也没有 CI。** skill 是自然语言指令，正确性只能靠实际会话验证，
    而验证必须开新会话（见第二节第 3 点）。所以改 skill 后请显式跑一次真实场景，
    别只看 diff 就认为改对了。
+
+2. **`kimi-webbridge` 是第三方件，上游更新会与本地改动冲突。** 见该节的归属提醒。
+
+> 建库当天发现的「两个 DCA skill 权重相反且都活跃」已于 2026-08-20 退役 `investment-dca` 解决，
+> 见 [`_archive/README.md`](_archive/README.md)。同批发现的另两条
+> （`dca_advisor.py` 754 行超 `coding-standards` 的 300 行上限、frontmatter 缺 `name`）
+> 随该 skill 一并退役，不再是活跃问题。
 
 ## 六、改这个库的规矩
 
@@ -213,6 +195,13 @@ Python 工具链与错误处理、文档规范、项目启动清单。
 5. **第三方 skill 整目录替换，不逐行改**（见 `kimi-webbridge` 那节）。
 6. **默认分支 `master`**，本仓无 CI，纯文档改动可直接提交在其上；
    成批的行为改动仍建议按 `branch-workflow` 走分支。
+7. **退役一个 skill：先删联接，再移进 `_archive/`，顺序不能颠倒**（否则联接变成悬空指向）。
+   删联接**只能**用非递归删除，绝不能用 `rm -rf`——那会顺着联接把目标里的真实文件删掉：
+   ```powershell
+   [System.IO.Directory]::Delete("$env:USERPROFILE\.claude\skills\<名字>", $false)
+   ```
+   第二个参数 `$false` 是安全网：万一那个路径其实是真实非空目录，它会抛「目录非空」而不是删掉内容。
+   移完在 `_archive/README.md` 里写清为什么退役、被谁取代、有无孤立数据。
 
 ---
 
@@ -226,3 +215,13 @@ Python 工具链与错误处理、文档规范、项目启动清单。
   仓库设为**私有**：`30000 RMB` 月度预算属个人财务信息，虽非持仓明细也不宜公开。
 - **同期发现并记入第五节**：两个 DCA skill 权重相反且都活跃（最要紧的一条）、
   `dca_advisor.py` 超行数上限、`investment-dca` frontmatter 缺 `name`。
+
+### 2026-08-20 退役 investment-dca
+- **触发**：上一条记录的"权重相反"问题，用户判定 `investment-dca` 是历史件、不再需要更新。
+- **做法**：移除 `~/.claude/skills/investment-dca` 联接 → 校验目标目录 3 个文件完好 →
+  `git mv` 进 `_archive/investment-dca`。顺序刻意如此：先移动会让联接悬空。
+- **顺带确认**：`~/.claude/investment-dca/` 不存在——该 skill 从未产生过账本，
+  所以归档不遗弃任何历史数据（真实定投记录一直在项目仓那条链上）。
+- **沉淀成规矩**：第六节第 7 条写死了退役流程，重点是删联接只能用非递归删除，
+  `rm -rf` 会顺着联接删掉目标里的真实文件。
+- **随之收口**：第五节原第 1~3 条（权重冲突、754 行超上限、缺 `name`）都随该 skill 退役而不再是活跃问题。
