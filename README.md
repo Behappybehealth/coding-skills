@@ -49,6 +49,24 @@ New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\<名字>" -Ta
 
 （Junction 不需要管理员权限，SymbolicLink 需要——所以默认用 Junction。）
 
+**新机器上从零还原**——clone 只拿回文件，联接得重建，否则一个 skill 都不会加载：
+
+```powershell
+git clone https://github.com/Behappybehealth/coding-skills.git X:\coding\skills
+
+$src = "X:\coding\skills"                          # clone 到别处就改这里
+$dst = "$env:USERPROFILE\.claude\skills"
+New-Item -ItemType Directory -Force -Path $dst | Out-Null
+foreach ($p in "common\branch-workflow", "common\coding-standards", "common\self-check",
+                "projects\sp500-nasdaq100-gold-dca", "tools\kimi-webbridge") {
+  New-Item -ItemType Junction -Path "$dst\$(Split-Path $p -Leaf)" -Target "$src\$p"
+}
+
+Get-ChildItem $dst -Force | Select-Object Name, LinkType, Target   # 校验：5 条，Target 都指向 $src
+```
+
+三处容易漏：**`_archive\` 不建联接**（建了等于把退役件放回生效）；**联接名只取末段**（`projects\sp500-...` → `sp500-...`，因为那边是平铺的）；**建完要开新会话**才加载（见上面第 3 点）。另外 `sp500-nasdaq100-gold-dca` 这个 skill 只含说明，脚本在项目仓里，那台机器还得有 `X:\coding\projects\sp500-nasdaq100-gold-dca` 才跑得起来。
+
 ## 三、目录结构
 
 ```
@@ -225,3 +243,9 @@ Python 工具链与错误处理、文档规范、项目启动清单。
 - **沉淀成规矩**：第六节第 7 条写死了退役流程，重点是删联接只能用非递归删除，
   `rm -rf` 会顺着联接删掉目标里的真实文件。
 - **随之收口**：第五节原第 1~3 条（权重冲突、754 行超上限、缺 `name`）都随该 skill 退役而不再是活跃问题。
+
+### 2026-08-20 接远端 + 补还原步骤
+- **远端**：`origin` = `https://github.com/Behappybehealth/coding-skills.git`，**公开**（用户有意设置）。
+  入库前已确认无任何真实凭据、无持仓与成本数据；公开的是规范正文与策略口径。
+- **补第二节「新机器上从零还原」**：有远端之后 clone 才成为真实场景，而 clone **只拿回文件、不带联接**——
+  少了这段，新机器上一个 skill 都不会加载，而且不会报错，只是安静地什么都没有。
